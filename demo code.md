@@ -110,7 +110,6 @@
 
 请将以下所有示例函数代码放入一个`main.cpp`文件中，并与您提供的`Propagation.h`和`Propagation.cpp`放在同一目录中进行编译。
 
-C++
 
 ```C++
 // main.cpp
@@ -146,7 +145,6 @@ std::string getIeeeBandString(simCore::FrequencyBandIEEE band) {
 
 这个示例展示了如何声明并填充 `RadarParameters` 结构体，以备后续计算使用。
 
-C++
 
 ```C++
 void example_radar_parameters_usage() {
@@ -177,7 +175,6 @@ void example_radar_parameters_usage() {
 
 此示例模拟一个雷达探测一个特定距离和大小的目标，并计算雷达接收机收到的回波功率。
 
-C++
 
 ```C++
 void example_free_space_radar() {
@@ -204,7 +201,6 @@ void example_free_space_radar() {
 
 在自由空间计算的基础上，此示例加入了一个“模式传播因子”（PPF），用于模拟由多径、大气吸收等环境因素造成的额外损耗。
 
-C++
 
 ```C++
 void example_blake_equation() {
@@ -230,7 +226,6 @@ void example_blake_equation() {
 
 此示例计算一个单向通信链路（如卫星下行链路或无人机数据链）在接收端能收到的信号功率。
 
-C++
 
 ```C++
 void example_one_way_link() {
@@ -258,7 +253,6 @@ void example_one_way_link() {
 
 此示例模拟一个电子战支援措施（ESM）系统，计算其能探测到特定雷达信号的最大距离。
 
-C++
 
 ```C++
 void example_esm_detection() {
@@ -287,7 +281,6 @@ void example_esm_detection() {
 
 此示例展示了在已知总路径损耗时，如何反向计算出模式传播因子（PPF）。
 
-C++
 
 ```C++
 void example_loss_to_ppf() {
@@ -313,7 +306,6 @@ void example_loss_to_ppf() {
 
 此示例展示如何使用代码库自动识别一个给定的频率属于哪个IEEE雷达频段。
 
-C++
 
 ```C++
 void example_band_classification() {
@@ -333,7 +325,6 @@ void example_band_classification() {
 
 与上一个示例相反，此示例展示了如何根据一个已知的频段名称（枚举），查询其对应的起止频率。
 
-C++
 
 ```C++
 void example_band_range_query() {
@@ -358,7 +349,6 @@ void example_band_range_query() {
 
 **免责声明**: 此分析基于公开的、非保密的典型数据，仅用于演示代码功能，不代表任何实际装备的精确性能。
 
-C++
 
 ```C++
 void example_aegis_spy1_analysis() {
@@ -411,7 +401,6 @@ void example_aegis_spy1_analysis() {
 
 最后，在 `main` 函数中调用所有示例。
 
-C++
 
 ```C++
 int main() {
