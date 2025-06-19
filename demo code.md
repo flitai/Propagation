@@ -112,7 +112,7 @@
 
 C++
 
-```
+```C++
 // main.cpp
 
 #include "Propagation.h" // 您的代码库头文件
@@ -148,7 +148,7 @@ std::string getIeeeBandString(simCore::FrequencyBandIEEE band) {
 
 C++
 
-```
+```C++
 void example_radar_parameters_usage() {
     std::cout << "--- 1. 雷达参数结构体使用 ---\n";
     
@@ -179,7 +179,7 @@ void example_radar_parameters_usage() {
 
 C++
 
-```
+```C++
 void example_free_space_radar() {
     std::cout << "--- 2. 自由空间雷达计算 ---\n";
     
@@ -206,7 +206,7 @@ void example_free_space_radar() {
 
 C++
 
-```
+```C++
 void example_blake_equation() {
     std::cout << "--- 3. Blake方程计算 ---\n";
     
@@ -232,7 +232,7 @@ void example_blake_equation() {
 
 C++
 
-```
+```C++
 void example_one_way_link() {
     std::cout << "--- 4. 单程通信链路 ---\n";
 
@@ -260,7 +260,7 @@ void example_one_way_link() {
 
 C++
 
-```
+```C++
 void example_esm_detection() {
     std::cout << "--- 5. ESM接收机检测 ---\n";
 
@@ -289,7 +289,7 @@ void example_esm_detection() {
 
 C++
 
-```
+```C++
 void example_loss_to_ppf() {
     std::cout << "--- 6. 传播因子转换 ---\n";
 
@@ -315,7 +315,7 @@ void example_loss_to_ppf() {
 
 C++
 
-```
+```C++
 void example_band_classification() {
     std::cout << "--- 7. 频段分类应用 ---\n";
     
@@ -335,7 +335,7 @@ void example_band_classification() {
 
 C++
 
-```
+```C++
 void example_band_range_query() {
     std::cout << "--- 8. 频段范围查询 ---\n";
 
@@ -360,7 +360,7 @@ void example_band_range_query() {
 
 C++
 
-```
+```C++
 void example_aegis_spy1_analysis() {
     std::cout << "--- 9. 实际系统分析 - 模拟宙斯盾雷达性能 ---\n";
     
@@ -413,7 +413,7 @@ void example_aegis_spy1_analysis() {
 
 C++
 
-```
+```C++
 int main() {
     std::cout << std::fixed << std::setprecision(2);
 
