@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式RF传播计算模型</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h1, h2 {
+            color: #005a9c;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        .calculator {
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            background-color: #fdfdff;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        input[type="number"], select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .radio-group label {
+            font-weight: normal;
+            margin-right: 15px;
+        }
+        .output {
+            margin-top: 20px;
+            background-color: #e9f5ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+        }
+        .output p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .output strong {
+            color: #005a9c;
+        }
+        .description {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>交互式RF传播计算模型</h1>
+    <p class="description">本工具基于NRL的C++传播代码库，提供了一系列用于雷达和电子战（EW）领域的电磁波传播计算。您可以通过修改参数进行实时的性能分析和验证。</p>
+
+    <div id="power-calculator" class="calculator">
+        <h2>1. 雷达功率计算器</h2>
+        <p class="description">根据雷达距离方程计算接收功率。支持双向（雷达）和单向（通信）链路，并可选择性地应用Blake方程的传播因子进行修正。</p>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="pwr_range">距离 (米)</label>
+                <input type="number" id="pwr_range" value="75000">
+            </div>
+            <div class="input-group">
+                <label for="pwr_freq">频率 (MHz)</label>
+                <input type="number" id="pwr_freq" value="9500">
+            </div>
+            <div class="input-group">
+                <label for="pwr_power">发射功率 (瓦)</label>
+                <input type="number" id="pwr_power" value="50000">
+            </div>
+            <div class="input-group">
+                <label for="pwr_tx_gain">发射增益 (dBi)</label>
+                <input type="number" id="pwr_tx_gain" value="40">
+            </div>
+            <div class="input-group">
+                <label for="pwr_rx_gain">接收增益 (dBi)</label>
+                <input type="number" id="pwr_rx_gain" value="40">
+            </div>
+            <div class="input-group">
+                <label for="pwr_rcs">雷达截面积 (m²)</label>
+                <input type="number" id="pwr_rcs" value="2.0">
+            </div>
+            <div class="input-group">
+                <label for="pwr_loss">系统损耗 (dB)</label>
+                <input type="number" id="pwr_loss" value="5.0">
+            </div>
+            <div class="input-group">
+                <label for="pwr_ppf">模式传播因子 (dB)</label>
+                <input type="number" id="pwr_ppf" value="-4.5">
+            </div>
+        </div>
+        <div class="radio-group">
+            <label><input type="radio" name="pwr_one_way" value="false" checked> 双向链路 (雷达)</label>
+            <label><input type="radio" name="pwr_one_way" value="true"> 单向链路 (通信)</label>
+        </div>
+        <div class="output">
+            <p><strong>自由空间接收功率:</strong> <span id="pwr_output_fs"></span> dB</p>
+            <p><strong>Blake方程修正后功率:</strong> <span id="pwr_output_blake"></span> dB</p>
+        </div>
+    </div>
+
+    <div id="esm-calculator" class="calculator">
+        <h2>2. ESM 截获距离计算器</h2>
+        <p class="description">计算电子支援措施(ESM)接收机在自由空间中对特定发射源的单向最大探测距离及该距离上的路径损耗。</p>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="esm_tx_gain">发射天线增益 (dBi)</label>
+                <input type="number" id="esm_tx_gain" value="40">
+            </div>
+            <div class="input-group">
+                <label for="esm_freq">发射机频率 (MHz)</label>
+                <input type="number" id="esm_freq" value="3000">
+            </div>
+            <div class="input-group">
+                <label for="esm_power">发射机功率 (瓦)</label>
+                <input type="number" id="esm_power" value="100000">
+            </div>
+            <div class="input-group">
+                <label for="esm_sensitivity">接收机灵敏度 (dBm)</label>
+                <input type="number" id="esm_sensitivity" value="-80">
+            </div>
+        </div>
+        <div class="output">
+            <p><strong>最大截获距离:</strong> <span id="esm_output_range"></span> km</p>
+            <p><strong>对应路径损耗:</strong> <span id="esm_output_loss"></span> dB</p>
+        </div>
+    </div>
+
+    <div id="ppf-converter" class="calculator">
+        <h2>3. 传播因子(PPF)转换器</h2>
+        <p class="description">将给定的总路径损耗值，根据距离和频率，反向计算出模式传播因子(PPF)。</p>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="ppf_range">斜距 (米)</label>
+                <input type="number" id="ppf_range" value="80000">
+            </div>
+            <div class="input-group">
+                <label for="ppf_freq">频率 (MHz)</label>
+                <input type="number" id="ppf_freq" value="5600">
+            </div>
+            <div class="input-group">
+                <label for="ppf_loss">总路径损耗 (dB)</label>
+                <input type="number" id="ppf_loss" value="155">
+            </div>
+        </div>
+        <div class="output">
+            <p><strong>模式传播因子 (PPF):</strong> <span id="ppf_output"></span> dB</p>
+        </div>
+    </div>
+
+    <div id="band-tool" class="calculator">
+        <h2>4. 频率波段工具</h2>
+        <p class="description">实现频率值和标准波段代号（US ECM 和 IEEE）之间的双向转换。</p>
+        
+        <h3 style="color:#333; font-size:1.1em; border-bottom:0;">频率到波段转换</h3>
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+             <div class="input-group">
+                <label for="band_freq_in">输入频率 (MHz)</label>
+                <input type="number" id="band_freq_in" value="15500">
+            </div>
+        </div>
+        <div class="output">
+            <p><strong>US ECM 波段:</strong> <span id="band_output_usecm"></span></p>
+            <p><strong>IEEE 波段:</strong> <span id="band_output_ieee"></span></p>
+        </div>
+
+        <h3 style="color:#333; font-size:1.1em; border-bottom:0; margin-top:20px;">波段到频率范围查询</h3>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="band_select_usecm">选择 US ECM 波段</label>
+                <select id="band_select_usecm">
+                    <option value="USECM_FREQ_A">A (0-250 MHz)</option>
+                    <option value="USECM_FREQ_B">B (250-500 MHz)</option>
+                    <option value="USECM_FREQ_C">C (500-1000 MHz)</option>
+                    <option value="USECM_FREQ_D">D (1-2 GHz)</option>
+                    <option value="USECM_FREQ_E">E (2-3 GHz)</option>
+                    <option value="USECM_FREQ_F">F (3-4 GHz)</option>
+                    <option value="USECM_FREQ_G">G (4-6 GHz)</option>
+                    <option value="USECM_FREQ_H">H (6-8 GHz)</option>
+                    <option value="USECM_FREQ_I">I (8-10 GHz)</option>
+                    <option value="USECM_FREQ_J">J (10-20 GHz)</option>
+                    <option value="USECM_FREQ_K">K (20-40 GHz)</option>
+                    <option value="USECM_FREQ_L">L (40-60 GHz)</option>
+                    <option value="USECM_FREQ_M">M (60-100 GHz)</option>
+                </select>
+                <div class="output" style="margin-top:10px;">
+                    <p id="range_output_usecm"></p>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="band_select_ieee">选择 IEEE 波段</label>
+                <select id="band_select_ieee">
+                    <option value="IEEE_FREQ_HF">HF (3-30 MHz)</option>
+                    <option value="IEEE_FREQ_VHF">VHF (30-300 MHz)</option>
+                    <option value="IEEE_FREQ_UHF">UHF (0.3-1 GHz)</option>
+                    <option value="IEEE_FREQ_L">L (1-2 GHz)</option>
+                    <option value="IEEE_FREQ_S" selected>S (2-4 GHz)</option>
+                    <option value="IEEE_FREQ_C">C (4-8 GHz)</option>
+                    <option value="IEEE_FREQ_X">X (8-12 GHz)</option>
+                    <option value="IEEE_FREQ_KU">Ku (12-18 GHz)</option>
+                    <option value="IEEE_FREQ_K">K (18-27 GHz)</option>
+                    <option value="IEEE_FREQ_KA">Ka (27-40 GHz)</option>
+                    <option value="IEEE_FREQ_V">V (40-75 GHz)</option>
+                    <option value="IEEE_FREQ_W">W (75-110 GHz)</option>
+                    <option value="IEEE_FREQ_MM">MM (30-300 GHz)</option>
+                </select>
+                <div class="output" style="margin-top:10px;">
+                    <p id="range_output_ieee"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Constants from simCore library
+    const LIGHT_SPEED_AIR = 299705000.0; // m/s, adjusted for air from vacuum
+    const LIGHT_SPEED_VACUUM = 299792458.0; // m/s
+    const RRE_CONSTANT = Math.pow(4.0 * Math.PI, 3);
+
+    // Helper Functions
+    const linear2dB = (val) => 10.0 * Math.log10(val);
+    const toFixed = (num, precision = 2) => (typeof num === 'number' && isFinite(num)) ? num.toFixed(precision) : 'N/A';
+
+    // --- 1. Power Calculator ---
+    const pwrCalculatorInputs = [
+        'pwr_range', 'pwr_freq', 'pwr_power', 'pwr_tx_gain', 'pwr_rx_gain',
+        'pwr_rcs', 'pwr_loss', 'pwr_ppf'
+    ];
+    const pwrRadios = document.querySelectorAll('input[name="pwr_one_way"]');
+
+    function calculatePower() {
+        const rngMeters = parseFloat(document.getElementById('pwr_range').value);
+        const freqMhz = parseFloat(document.getElementById('pwr_freq').value);
+        const powerWatts = parseFloat(document.getElementById('pwr_power').value);
+        const xmtGaindB = parseFloat(document.getElementById('pwr_tx_gain').value);
+        const rcvGaindB = parseFloat(document.getElementById('pwr_rx_gain').value);
+        const rcsSqm = parseFloat(document.getElementById('pwr_rcs').value);
+        const systemLossdB = parseFloat(document.getElementById('pwr_loss').value);
+        const ppfdB = parseFloat(document.getElementById('pwr_ppf').value);
+        const isOneWay = document.querySelector('input[name="pwr_one_way"]:checked').value === 'true';
+
+        document.getElementById('pwr_rcs').disabled = isOneWay;
+
+        if (freqMhz === 0 || rngMeters === 0) {
+            document.getElementById('pwr_output_fs').textContent = 'Error: Freq/Range cannot be 0';
+            document.getElementById('pwr_output_blake').textContent = 'Error: Freq/Range cannot be 0';
+            return;
+        }
+
+        const lambdaSqrd = Math.pow(LIGHT_SPEED_AIR / (1e6 * freqMhz), 2);
+        let rcvPowerFs;
+
+        if (isOneWay) {
+            // One-way calculation
+            rcvPowerFs = xmtGaindB + rcvGaindB - systemLossdB + linear2dB((powerWatts * lambdaSqrd) / Math.pow(4 * Math.PI * rngMeters, 2));
+        } else {
+            // Two-way calculation
+            rcvPowerFs = xmtGaindB + rcvGaindB - systemLossdB + linear2dB((rcsSqm * powerWatts * lambdaSqrd) / (RRE_CONSTANT * Math.pow(rngMeters, 4)));
+        }
+
+        const rcvPowerBlake = isOneWay ? (rcvPowerFs + (2.0 * ppfdB)) : (rcvPowerFs + (4.0 * ppfdB));
+
+        document.getElementById('pwr_output_fs').textContent = toFixed(rcvPowerFs);
+        document.getElementById('pwr_output_blake').textContent = toFixed(rcvPowerBlake);
+    }
+
+    // --- 2. ESM Calculator ---
+    const esmCalculatorInputs = ['esm_tx_gain', 'esm_freq', 'esm_power', 'esm_sensitivity'];
+
+    function calculateESM() {
+        let xmtGaindB = parseFloat(document.getElementById('esm_tx_gain').value);
+        let xmtFreqMhz = parseFloat(document.getElementById('esm_freq').value);
+        let xmtrPwrWatts = parseFloat(document.getElementById('esm_power').value);
+        const rcvrSensDbm = parseFloat(document.getElementById('esm_sensitivity').value);
+
+        if (xmtFreqMhz === 0.0 || xmtrPwrWatts === 0.0) {
+            document.getElementById('esm_output_range').textContent = 'Error: Freq/Power cannot be 0';
+            document.getElementById('esm_output_loss').textContent = 'Error: Freq/Power cannot be 0';
+            return;
+        }
+
+        const xmtPwrDb = 10.0 * Math.log10((xmtrPwrWatts * 1e-3) / (xmtFreqMhz * xmtFreqMhz));
+        const esmRngKm = Math.pow(10.0, ((xmtPwrDb + xmtGaindB - rcvrSensDbm + 27.5517) / 20.0));
+        const fsLossDb = 20.0 * Math.log10(xmtFreqMhz * esmRngKm) + 32.45;
+
+        document.getElementById('esm_output_range').textContent = toFixed(esmRngKm);
+        document.getElementById('esm_output_loss').textContent = toFixed(fsLossDb);
+    }
+    
+    // --- 3. PPF Converter ---
+    const ppfConverterInputs = ['ppf_range', 'ppf_freq', 'ppf_loss'];
+
+    function convertLossToPpf() {
+        const slantRange = parseFloat(document.getElementById('ppf_range').value);
+        const freqMHz = parseFloat(document.getElementById('ppf_freq').value);
+        const loss_dB = parseFloat(document.getElementById('ppf_loss').value);
+
+        if (slantRange <= 0.0 || freqMHz <= 0.0) {
+            document.getElementById('ppf_output').textContent = 'Error: Range/Freq must be > 0';
+            return;
+        }
+
+        const vacuumWavenumber = (2 * Math.PI * 1e6 * freqMHz) / LIGHT_SPEED_VACUUM;
+        const fsLossDb = 20 * Math.log10(2 * vacuumWavenumber * slantRange);
+        const ppf_dB = fsLossDb - loss_dB;
+
+        document.getElementById('ppf_output').textContent = toFixed(ppf_dB);
+    }
+
+    // --- 4. Band Tool ---
+    const bandFreqInput = document.getElementById('band_freq_in');
+    const usEcmSelect = document.getElementById('band_select_usecm');
+    const ieeeSelect = document.getElementById('band_select_ieee');
+
+    function classifyFrequency() {
+        const freqMhz = parseFloat(bandFreqInput.value);
+        document.getElementById('band_output_usecm').textContent = toUsEcm(freqMhz);
+        document.getElementById('band_output_ieee').textContent = toIeeeBand(freqMhz);
+    }
+    
+    function toUsEcm(freqMhz) {
+        if (freqMhz < 0) return 'Out of Bounds';
+        if (freqMhz < 250) return 'A';
+        if (freqMhz < 500) return 'B';
+        if (freqMhz < 1000) return 'C';
+        if (freqMhz < 2000) return 'D';
+        if (freqMhz < 3000) return 'E';
+        if (freqMhz < 4000) return 'F';
+        if (freqMhz < 6000) return 'G';
+        if (freqMhz < 8000) return 'H';
+        if (freqMhz < 10000) return 'I';
+        if (freqMhz < 20000) return 'J';
+        if (freqMhz < 40000) return 'K';
+        if (freqMhz < 60000) return 'L';
+        if (freqMhz < 100000) return 'M';
+        return 'Out of Bounds';
+    }
+
+    function toIeeeBand(freqMhz) {
+        if (freqMhz < 3) return 'Out of Bounds';
+        if (freqMhz < 30) return 'HF';
+        if (freqMhz < 300) return 'VHF';
+        if (freqMhz < 1000) return 'UHF';
+        if (freqMhz < 2000) return 'L';
+        if (freqMhz < 4000) return 'S';
+        if (freqMhz < 8000) return 'C';
+        if (freqMhz < 12000) return 'X';
+        if (freqMhz < 18000) return 'Ku';
+        if (freqMhz < 27000) return 'K';
+        if (freqMhz < 40000) return 'Ka';
+        if (freqMhz < 75000) return 'V';
+        if (freqMhz < 110000) return 'W';
+        if (freqMhz < 300000) return 'G';
+        return 'Out of Bounds';
+    }
+
+    const usEcmRanges = {
+        USECM_FREQ_A: { min: 0, max: 250 }, USECM_FREQ_B: { min: 250, max: 500 },
+        USECM_FREQ_C: { min: 500, max: 1000 }, USECM_FREQ_D: { min: 1000, max: 2000 },
+        USECM_FREQ_E: { min: 2000, max: 3000 }, USECM_FREQ_F: { min: 3000, max: 4000 },
+        USECM_FREQ_G: { min: 4000, max: 6000 }, USECM_FREQ_H: { min: 6000, max: 8000 },
+        USECM_FREQ_I: { min: 8000, max: 10000 }, USECM_FREQ_J: { min: 10000, max: 20000 },
+        USECM_FREQ_K: { min: 20000, max: 40000 }, USECM_FREQ_L: { min: 40000, max: 60000 },
+        USECM_FREQ_M: { min: 60000, max: 100000 }
+    };
+
+    const ieeeRanges = {
+        IEEE_FREQ_HF: { min: 3, max: 30 }, IEEE_FREQ_VHF: { min: 30, max: 300 },
+        IEEE_FREQ_UHF: { min: 300, max: 1000 }, IEEE_FREQ_L: { min: 1000, max: 2000 },
+        IEEE_FREQ_S: { min: 2000, max: 4000 }, IEEE_FREQ_C: { min: 4000, max: 8000 },
+        IEEE_FREQ_X: { min: 8000, max: 12000 }, IEEE_FREQ_KU: { min: 12000, max: 18000 },
+        IEEE_FREQ_K: { min: 18000, max: 27000 }, IEEE_FREQ_KA: { min: 27000, max: 40000 },
+        IEEE_FREQ_V: { min: 40000, max: 75000 }, IEEE_FREQ_W: { min: 75000, max: 110000 },
+        IEEE_FREQ_G: { min: 110000, max: 300000 }, IEEE_FREQ_MM: { min: 30000, max: 300000 }
+    };
+    
+    function queryBandRanges() {
+        const selectedUsEcm = usEcmSelect.value;
+        const usEcmRange = usEcmRanges[selectedUsEcm];
+        document.getElementById('range_output_usecm').textContent = `范围: ${usEcmRange.min} - ${usEcmRange.max} MHz`;
+
+        const selectedIeee = ieeeSelect.value;
+        const ieeeRange = ieeeRanges[selectedIeee];
+        document.getElementById('range_output_ieee').textContent = `范围: ${ieeeRange.min} - ${ieeeRange.max} MHz`;
+    }
+
+    // --- Initial calculations and event listeners ---
+    const allInputs = [...pwrCalculatorInputs, ...esmCalculatorInputs, ...ppfConverterInputs, 'band_freq_in'];
+    const allCalculators = [calculatePower, calculateESM, convertLossToPpf, classifyFrequency, queryBandRanges];
+
+    function setupListeners(inputIds, calcFunction) {
+        inputIds.forEach(id => document.getElementById(id).addEventListener('input', calcFunction));
+    }
+    
+    setupListeners(pwrCalculatorInputs, calculatePower);
+    pwrRadios.forEach(radio => radio.addEventListener('change', calculatePower));
+    setupListeners(esmCalculatorInputs, calculateESM);
+    setupListeners(ppfConverterInputs, convertLossToPpf);
+    bandFreqInput.addEventListener('input', classifyFrequency);
+    usEcmSelect.addEventListener('change', queryBandRanges);
+    ieeeSelect.addEventListener('change', queryBandRanges);
+
+    // Initial run
+    allCalculators.forEach(func => func());
+});
+</script>
+
+</body>
+</html>
